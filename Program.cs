@@ -66,21 +66,15 @@ while (true) {
 	}
 }
 
-string DispatchToolCall(ChatToolCall call) {
-	switch (call.FunctionName) {
-		case "read":
-			return readFile(call);
-		default:
-			throw new InvalidOperationException($"Unexpected function name \"{call.FunctionName}\"");
-	}
-}
+string DispatchToolCall(ChatToolCall call) => call.FunctionName switch {
+	"read" => readFile(call),
+	_ => throw new InvalidOperationException($"Unexpected function name \"{call.FunctionName}\""),
+};
 
 string readFile(ChatToolCall call) {
 	string? path = call.FunctionArguments
 		.ToObjectFromJson<Dictionary<string, JsonElement>>()?["path"]
-		.GetString();
-	if (path is null) {
-		throw new InvalidOperationException("Could not get path out of read tool call args.");
-	}
+		.GetString()
+		?? throw new InvalidOperationException("Could not get path out of read tool call args.");
 	return File.ReadAllText(path);
 }
